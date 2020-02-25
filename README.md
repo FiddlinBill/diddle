@@ -3,6 +3,19 @@ You'll need:
 1.5) (optional) Download a custom soundfont for your midi playback device.
 2) Nodejs - works on v10 - probably works on many other versions of node
 
+Install Dependencies
+```console
+npm i
+```
+
+Render a midi file
+```console
+node example.js
+```
+
+Done!
+
+Now you need to get midi playback working on your platform
 
 Windows users
 windows media player can play midi file out of the box. However, you might one day get bored of the default soundfont.
