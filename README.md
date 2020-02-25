@@ -17,9 +17,11 @@ Done!
 
 Now you need to get midi playback working on your platform
 
-Windows users
+Windows users:
 windows media player can play midi file out of the box. However, you might one day get bored of the default soundfont.
 A simple program that allows you to customize the windows media player soundfont is called Virtual Midi Synth.
+
+Mac Users: Who knows?
 
 Linux users!
 I recommend using fluidsynth and jackd as outlined in the excellent article.
@@ -83,42 +85,3 @@ unsuspend pulse audio when you are finished
 ```console
 	echo "suspend 0" | pacmd
 ```
-
-
-
-
-
-
-
-
-
-
-
-Motifs
-	- Progression based composition
-		- All instruments adhere to a progression of notes
-
-	- Reaction based composition
-		- All other instruments react to whatever the lead instrument is doing
-
-	- Hysteresis
-		- current output depends on past events
-
-	- Melody composition - 
-
-	- Instrumentation
-		- giving each instrument a pattern
-	- Role based composition
-		- each instrument has its own role to play
-
-Variation - Mixing up a melody
-Challenges
-	- getting all tracks to line up in progression based composition
-
-Imitating a midi controller - send events directly to syth
-Generating midi events - save events in a midi file
-
-MIDI Spec
-
-Song position pointer
-Continuous Controller
