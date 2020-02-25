@@ -1,0 +1,17 @@
+{
+  "name": "diddle",
+  "version": "1.0.0",
+  "description": "A multi-track multi-channel midi composing tool",
+  "main": "diddle.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "author": "John Gibble",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/code": "^8.0.1",
+    "@hapi/joi": "^17.1.0",
+    "@hapi/lab": "^22.0.3",
+    "jsmidgen": "^0.1.5"
+  }
+}
