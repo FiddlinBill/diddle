@@ -2,11 +2,11 @@ const Diddle = require('./diddle.js');
 
 const beat = 128; // a beat is 128 ticks
 const t = 60; // t for tonic
-const b = t - 24; // bass tonic
+const b = t; // bass tonic
 
 // intro
 const introSynth = new Diddle()
-	.run(t, t + 12, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(t, t + 12, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat/2 })
 	.jumble()
 	.repeat(4)
@@ -14,7 +14,7 @@ const introSynth = new Diddle()
 	.render(3);
 
 const introSynth1 = new Diddle()
-	.run(t + 12, t + 24, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(t + 12, t + 24, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat, delay: 'random' })
 	.jumble()
 	.repeat(4)
@@ -23,7 +23,7 @@ const introSynth1 = new Diddle()
 	.render(3);
 
 const introSynth2 = new Diddle()
-	.run(t + 36, t, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(t + 36, t, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat })
 	.jumble()
 	.repeat(4)
@@ -32,14 +32,14 @@ const introSynth2 = new Diddle()
 
 // part A
 const synthA = new Diddle()
-	.run(t, t + 12, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(t, t + 12, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat/4, delay: 'random' })
 	.jumble()
 	.repeat(4)
 	.notes;
 
 const bassA = new Diddle()
-	.run(b, b + 12, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(b, b + 12, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat/2, delay: 'random' })
 	.jumble()
 	.repeat(4)
@@ -57,14 +57,14 @@ const drumsA = new Diddle()
 
 // part b
 const synthB = new Diddle()
-	.run(t - 12, t + 12, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(t - 12, t + 12, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat/4, delay: 'random' })
 	.jumble()
 	.repeat(4)
 	.notes;
 
 const bassB = new Diddle()
-	.run(b, b + 12, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(b, b + 12, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat/2, delay: 'random' })
 	.jumble()
 	.repeat(4)
@@ -86,7 +86,7 @@ const bodySynth = new Diddle()
 	.addNotes(synthB)
 	.repeat(3)
 	.delay(introSynth.duration())
-	.render(4);
+	.render(3);
 
 const bodyBass = new Diddle()
 	.addNotes(bassA)
@@ -100,11 +100,11 @@ const bodyDrums = new Diddle()
 	.addNotes(drumsB)
 	.repeat(3)
 	.delay(introSynth.duration())
-	.render(2);
+	.render(5);
 
 // outro
 const outroSynth = new Diddle()
-	.run(t, t + 12, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(t, t + 12, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat })
 	.jumble()
 	.repeat(4)
@@ -112,7 +112,7 @@ const outroSynth = new Diddle()
 	.render(3);
 
 const outroSynth1 = new Diddle()
-	.run(t + 12, t + 24, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(t + 12, t + 24, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat, delay: 'random' })
 	.jumble()
 	.repeat(4)
@@ -121,7 +121,7 @@ const outroSynth1 = new Diddle()
 	.render(3);
 
 const outroSynth2 = new Diddle()
-	.run(t + 36, t, { duration: 4*beat, tonic: t, mode: 'aeolian'})
+	.run(t + 36, t, { duration: 4*beat, tonic: t, mode: 'ionian'})
 	.reform({ resolution: beat/2 })
 	.jumble()
 	.repeat(4)

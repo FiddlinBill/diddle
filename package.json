@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@hapi/code": "^8.0.1",
+    "@hapi/hoek": "^9.0.4",
     "@hapi/joi": "^17.1.0",
     "@hapi/lab": "^22.0.3",
     "jsmidgen": "^0.1.5"

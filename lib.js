@@ -129,3 +129,16 @@ const getNotes = module.exports.getNotes = function (r, mode) {
 
 	return notes.filter((n) => rootNotes.includes(n%12));
 };
+
+// find all instances of given notes
+const getInstancesOf = module.exports.getInstancesOf = function (notes, options) {
+
+	const min = options.min;
+	const max = options.max;
+
+	const rootNotes = notes.map((n) => n%12);
+
+	return [...Array(127).keys()] // all possible MIDI notes
+		.filter((n) => rootNotes.includes(n%12)) // get all notes that are octaves of the root notes
+        .filter((n) => n >= min && n <= max); // trim with max and min values
+};
