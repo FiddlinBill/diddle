@@ -156,3 +156,36 @@ experiment('repeat', () => {
 	});
 
 });
+
+experiment('progression', () => {
+
+	it.only('create a progression from valid user input', () => {
+
+		const progression = [
+			{
+				chord: 'C7', duration: 10
+			},
+			{
+				chord: 'G7', duration: 5
+			},
+			{
+				chord: 'F', duration: 10
+			}
+		];
+
+		const prog = new Diddle(progression)
+			.progression;
+
+	    expect(prog).to.equal(progression);
+	});
+
+	it('the total duration is multiplied by x', () => {
+
+		const run = new Diddle()
+			.run(0, 2)
+			.repeat(2).notes;
+
+	    expect(run.reduce((a, b) => a + b.duration + (b.delay || 0), 0)).to.equal(128*6);
+	});
+
+});

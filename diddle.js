@@ -1,23 +1,44 @@
 const fs = require('fs');
 const Midi = require('jsmidgen');
 const Hoek = require('@hapi/hoek');
+const Joi = require('joi');
+const { chord } = require('@tonaljs/tonal');
 const file = new Midi.File();
 const lib = require('./lib');
 const getNotes = lib.getNotes;
 const deconstruct = lib.deconstruct;
 const r = lib.r;
+const parsePattern = lib.parsePattern;
 const beat = 128; // a beat is 128 ticks as per MIDI spec
+const progressionSchema = Joi.array().items({
+    chord: [Joi.string(), Joi.array().items(Joi.number().min(0).max(126))],
+    duration: Joi.number(),
+    vox: Joi.boolean(),
+    resolution: Joi.number().min(1)
+});
+const noteSchema = {
+    duration: Joi.number(),
+    resolution: Joi.number().min(1),
+    note: Joi.number().min(0).max(126)
+};
+const diddleOptionsSchema = {
+    notes: Joi.array().items(noteSchema),
+    progression: progressionSchema,
+};
 
 module.exports = class Diddle {
 
     // optionally pass a previous diddle to create a copy of the notes
-    constructor (diddle) {
+    constructor (diddle, options={}) {
 
         const track = new Midi.Track();
+        const prog = options.progression;
         file.addTrack(track);
         this.track = track;
         // an array of objects [{ note, duration, delay }...]
         this.notes = diddle && diddle.notes.map(n => ({...n})) || [];
+        prog && progressionSchema.validate(prog);
+        this.progression = prog;
     }
 
     static write (filename) {
@@ -164,42 +185,143 @@ module.exports = class Diddle {
         this.notes = this.notes.filter((n) => n.duration || n.delay);
         return this;
     }
-
+ 
     // fill an interval of a given length with given notes
     fill (options={}) {
-
+        let pattern = options.pattern;
+        const tonic = options.tonic || 60;
+        const mode = options.mode;
+        const delta = options.delta || 'degree';
         const resolution = options.resolution || beat;
-        const duration = options.duration || beat;
+        const prog = this.progression;
+        const duration = options.duration || 
+            (prog && prog.reduce((d, i) => i.duration + d, 0)) || beat;
         const notes = options.notes;
         const chunks = duration / resolution;
         const minNotes = options.minNotes || 1; // the minimum number of notes
         const maxNotes = options.maxNotes || chunks; // the maximum number of notes
         const numberOfNotes = options.numberOfNotes || r(minNotes, maxNotes);
+        // assume chromatic if no mode is given
+        const notesInKey = mode && getNotes(tonic, mode) || [...Array(127).keys()];
+        let notesInChord;
         let newGroove = [];
+        let delay = 0;
 
-        if (resolution * numberOfNotes > duration) {
-            console.warn('Reform: Your resolution is not fine enough. You will lose information');
-        }
+        const fillOptionsSchema = {
+            duration: Joi.number(),
+            onVox: Joi.number().min(0).max(127),
+            resolution: Joi.number().min(1),
+            notes: Joi.array().items(noteSchema),
+            delta: Joi.string().valid('chromatic', 'degree', 'chord')
+        };
+        // pattern = 'x(x_x)_x--x'
+        // pattern = [{ note: 23, delta: -1 }, {}]
+        // pattern = [-2, '_', ['-1, 1, 0], '-', '-']
+        // delta: chromatic || degree (default) || chord
+        // chromatic - deltas traverse chromatically from root chord, or tonic (if no progression is given)
+        // degree - deltas traverse degrees of scale. Ex fill({ pattern: [-1, 0, 1], tonic: 'C4', mode: 'ionian' }) => B4, C4, D4 (degrees) OR B4, C4, C#4 (chromatic)
+        // chord - deltas traverse degrees of chord. Ex fill({ pattern: [-1, 0, 1], progression: [{ chord: 'C', duration: 2*beat }] }) => G3, C4, E4
+    
+        // resolution does not make sense with pattern and duration
+        // no pattern and no progression
+        // diddle
+        //     .fill({ duration: 4*beat })
 
-        if (duration % resolution) {
-            console.warn('Reform: Your duration is not divisible by the resolution.');
-        }
+        // pattern and no progression 
+        // -> repeats pattern with random notes until duration is reached
+        // -> assumes duration is 1 beat if not given
 
-        // x random integers that sum to y
-        let randomIntegers = deconstruct(numberOfNotes, chunks);
+        // pattern and progression
+        // -> fill duration of progression step with pattern
 
-        for (let i = 0; i < numberOfNotes; i++) {
+        // no pattern and progression
+        // -> 
+
+        // no pattern and no progression
+    
+        // takes resolution and a pattern
+        const fill = (res, options) => {
+            const p = options.pattern;
+            const chord = options.chord;
+            const chordRoot = chordNotes[0];
+            const chordNotes = lib.getChordNotes(chord);
+            const allChordNotes = lib.getInstancesOf(chordNotes);
+            let remainder = options.remainder || 0;
+            for (let i = 0; i < p.length; i++) {
+
+                if (Array.isArray(p[i])) {
+                    fill(res / p[i].length, { pattern: p[i], remainder: calculateRemainder(res, p[i]) });
+                    return;
+                }
+
+                // make the previous note longer
+                if (p[i] === '_') {
+                    newGroove[newGroove.length - 1].duration += res;
+                    return;
+                }
+                
+                // add to delay of next note
+                if (p[i] === '-') {
+                    delay += res;
+                    return;
+                }
+
+                let note;
+
+                if (delta === 'chromatic') {
+                    note = chordRoot + p[i];
+                }
+
+                if (delta === 'chord') {
+                    note = allChordNotes[allChordNotes.indexOf(chordRoot) + p[i]]
+                }
+
+                if (delta === 'degree') {
+                    note = notesInKey[notesInKey.indexOf(chordRoot) + p[i]]
+                }
+                
+                newGroove.push({
+                    note,
+                    duration: res,
+                    delay,
+                });
+            }
+
+            // add any remaining ticks to duration of last note. corrects rounding error
+            newGroove[newGroove.length - 1].duration += remainder;
+        };
+
+        const calculateRemainder = (duration, pattern) => {
+            const res = Math.round(duration / p.length);
+            return duration - res * p.length;
+        };
+
+        if (!prog) {
+            for (let i = 0; i < numberOfNotes; i++) {
             
-            newGroove.push({
-                note: notes[r(0, notes.length)],
-                duration: randomIntegers.pop() * resolution
-            });
+                newGroove.push({
+                    note: notes[r(0, notes.length)],
+                    duration: randomIntegers.pop() * resolution
+                });
+            }
+    
+            this.notes = this.notes.concat(newGroove);
+    
+            // remove any 0 delay 0 duration notes that may have occurred due to information loss
+            this.notes = this.notes.filter((n) => n.duration || n.delay);
+            return this;
+        }
+        
+        // clear any leftover unused delay
+        delay = 0;
+        for (let i = 0; i < prog.length; i++) {
+            const it = prog[i];
+            const duration = it.duration;
+            let p = it.pattern || pattern;
+
+            fill(res, { pattern: p, remainder: calculateRemainder(duration, pattern) });
         }
 
-        this.notes = this.notes.concat(newGroove);
-
-        // remove any 0 delay 0 duration notes that may have occurred due to information loss
-        this.notes = this.notes.filter((n) => n.duration || n.delay);
         return this;
     }
 

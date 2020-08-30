@@ -1,3 +1,4 @@
+const { Chord, Midi } = require('@tonaljs/tonal');
 const modes = [
 	{ name: 'ionian', pattern: [2, 2, 1, 2, 2, 2, 1]},
 	{ name: 'dorian', pattern: [2, 1, 2, 2, 2, 1, 2]},
@@ -26,6 +27,33 @@ const rx = module.exports.rx = function (x, min, max) {
 
 	for (let i = 0; i < x; i++) {
 		res.push(r(min, max));
+	}
+
+	return res;
+};
+
+// parse a pattern string and return an array
+// '154[r6[56]]7' => [1,5,4,[r,6,[5,6]],7]
+const parsePattern = module.exports.parsePattern = function (p) {
+
+	const res = [];
+	if (typeof p !== 'string') {
+		return p;
+	}
+ 
+	while (p.length) {
+		const c = p.shift();
+
+		if (c === '[') {
+			res.push(parsePattern(p));
+			continue;
+		}
+
+		if (c === ']') {
+			break;
+		}
+
+		res.push(c)
 	}
 
 	return res;
@@ -130,12 +158,22 @@ const getNotes = module.exports.getNotes = function (r, mode) {
 	return notes.filter((n) => rootNotes.includes(n%12));
 };
 
+const getChordNotes = module.exports.getChordNotes = (chord) => {
+
+	// if the name of a chord has been passed then attempt to convert it to an array of notes
+	if (typeof chord === 'string') {
+		chord = Chord
+			.get(notes).notes;
+	}
+
+	return chord.map((n) => Midi.toMidi(n));
+};
+
 // find all instances of given notes
 const getInstancesOf = module.exports.getInstancesOf = function (notes, options) {
 
 	const min = options.min;
 	const max = options.max;
-
 	const rootNotes = notes.map((n) => n%12);
 
 	return [...Array(127).keys()] // all possible MIDI notes
