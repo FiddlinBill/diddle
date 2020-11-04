@@ -1,4 +1,4 @@
-const { Chord, Midi } = require('@tonaljs/tonal');
+const { Chord, Midi, Note } = require('@tonaljs/tonal');
 const modes = [
 	{ name: 'ionian', pattern: [2, 2, 1, 2, 2, 2, 1]},
 	{ name: 'dorian', pattern: [2, 1, 2, 2, 2, 1, 2]},
@@ -160,20 +160,25 @@ const getNotes = module.exports.getNotes = function (r, mode) {
 
 const getChordNotes = module.exports.getChordNotes = (chord) => {
 
+	let parsedChord = chord;
 	// if the name of a chord has been passed then attempt to convert it to an array of notes
-	if (typeof chord === 'string') {
-		chord = Chord
-			.get(notes).notes;
+	if (typeof chord[0] === 'string') {
+		parsedChord = Chord
+			.getChord(...chord).notes;
+		
+		if (parsedChord.empty) {
+			throw Error(`Unknown chord: ${chord}`);
+		}
 	}
 
-	return chord.map((n) => Midi.toMidi(n));
+	return parsedChord.map((n) => Note.midi(n));
 };
 
 // find all instances of given notes
-const getInstancesOf = module.exports.getInstancesOf = function (notes, options) {
+const getInstancesOf = module.exports.getInstancesOf = function (notes, options={}) {
 
-	const min = options.min;
-	const max = options.max;
+	const min = options.min || 0;
+	const max = options.max || 127;
 	const rootNotes = notes.map((n) => n%12);
 
 	return [...Array(127).keys()] // all possible MIDI notes
